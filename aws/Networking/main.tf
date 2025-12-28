@@ -41,3 +41,13 @@ resource "aws_route_table" "public_rt" {
   }
   tags = merge(var.tags, { Name = "public_rt" })
 }
+
+resource "aws_route_table_association" "public_rt_association" {
+  route_table_id = aws_route_table.public_rt.id
+  subnet_id      = aws_subnet.public_subnet.id
+}
+
+resource "aws_route_table_association" "private_rt_association" {
+  route_table_id = aws_route_table.public_rt.id
+  subnet_id      = aws_subnet.private_subnet.id
+}
