@@ -20,24 +20,24 @@ resource "aws_key_pair" "terraform_key" {
   public_key = file("~/.ssh/terraform_aws_ec2_key_pair.pub")
   tags = merge(var.tags, { Name = "terraform_key" })
 }
-
+variable "ingress_ports" {
+  description = "List of ports to allow inbound traffic"
+  type        = list(number)
+  default     = [80, 22]
+}
 resource "aws_security_group" "web_sg" {
   name        = "WebInstance-SG"
   description = "Allow HTTP and SSH inbound traffic"
   vpc_id      = data.terraform_remote_state.Networking.outputs.aws_vpc_test.id
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "ingress" {
+    for_each = var.ingress_ports
+    content {
+      description = "Allow ${ingress.value}"
+      from_port = ingress.value
+      to_port = ingress.value
+      protocol = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
   }
   egress {
     description = "All outbound"
